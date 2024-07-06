@@ -1,4 +1,5 @@
-import { initAuthCreds, BufferJSON, proto } from "@whiskeysockets/baileys";
+import pkg from "@whiskeysockets/baileys";
+const {proto, initAuthCreds, BufferJSON} = pkg;
 
 const useMongoDbAuthState = async (collection) => {
 

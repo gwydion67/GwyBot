@@ -2,7 +2,7 @@ import { DisconnectReason, fetchLatestBaileysVersion, useMultiFileAuthState } fr
 import { MongoClient } from "mongodb";
 import 'dotenv/config'
 import * as baileys from '@whiskeysockets/baileys';
-import useMongoDbAuthState from "./mongoDbAuthState";
+import useMongoDbAuthState from "./mongoDbAuthState.js";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
@@ -16,15 +16,21 @@ async function connectToWhatsApp () {
   await mongoClient.connect();
 
   const collection = mongoClient.db("whatsapp_api").collection("auth_info_baileys")
-
   const {version, isLatest} = await fetchLatestBaileysVersion();
-  // const {state, saveCreds} = await useMultiFileAuthState("auth_info_baileys"); 
+
   const {state, saveCreds} = await useMongoDbAuthState(collection); 
+  // const {state, saveCreds} = await useMultiFileAuthState("auth_info_baileys"); 
 
   const sock = baileys.makeWASocket({
     auth: state,
     printQRInTerminal: true,
   })
+
+  if(usePairingCode && !sock.authState.creds.registered){
+    const phoneNumber = await rl.question("Please enter your mobile phoneNumber");
+    const code = await sock.requestPairingCode(phoneNumber);
+    console.log(`pairing code : ${code}`)
+  }
 
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect } = update;
@@ -45,11 +51,6 @@ async function connectToWhatsApp () {
     }
   })
 
-  if(usePairingCode && !sock.authState.creds.registered){
-    const phoneNumber = await rl.question("Please enter your mobile phoneNumber");
-    const code = await sock.requestPairingCode(phoneNumber);
-    console.log(`pairing code : ${code}`)
-  }
 
   sock.ev.on("creds.update", saveCreds);
 
