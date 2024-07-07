@@ -16,6 +16,7 @@
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "^6.7.5",
+    "axios": "^1.7.2",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
     "mongodb": "^6.8.0",
