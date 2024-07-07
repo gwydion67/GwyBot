@@ -27,7 +27,7 @@ async function connectToWhatsApp () {
     version,
     logger: pino({level: 'silent'}),
     auth: state,
-    browser: Browsers.windows('Firefox'),
+    browser: baileys.Browsers.windows('Firefox'),
     printQRInTerminal: !usePairingCode,
     generateHighQualityLinkPreview: true,
   })
