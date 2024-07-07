@@ -5,6 +5,7 @@ import * as baileys from '@whiskeysockets/baileys';
 import useMongoDbAuthState from "./mongoDbAuthState.js";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+import chalk from "chalk";
 
 const usePairingCode = process.argv.includes('--use-pairing-code');
 const rl = readline.createInterface({input,output});
@@ -55,14 +56,17 @@ async function connectToWhatsApp () {
   sock.ev.on("creds.update", saveCreds);
 
   sock.ev.on("messages.update", (m) => {
-    console.log(m);
+    console.log( chalk.blue('\n its me\n'),m);
   })
 
   sock.ev.on('messages.upsert', async (m) => {
-    console.log(JSON.stringify(m, undefined, 2))
+    // console.log(JSON.stringify(m, undefined, 2))
 
-    console.log('replying to', m.messages[0].key.remoteJid)
-    await sock.sendMessage(m.messages[0].key.remoteJid, { text: 'Hello there!' })
+    console.log(chalk.red('\nBoomBurst\n') , 'replying to', m.messages[0].key.remoteJid)
+    // await sock.sendMessage(m.messages[0].key.remoteJid, { text: 'Hello there!' })
+  })
+  sock.ev.on('groups.upsert', (m)=> {
+    console.log(chalk.greenBright('\nfajfakf\n')  , 'Greninja' , m )
   })
 }
 // run in main file
