@@ -16,7 +16,7 @@ const usePairingCode = process.argv.includes('--use-pairing-code');
 const rl = readline.createInterface({input,output});
 
 async function connectToWhatsApp () {
-  
+
   const Note = await connectNotes();
   const authCollection = await connectAuth();
   const {version, isLatest} = await fetchLatestBaileysVersion();
@@ -54,42 +54,43 @@ async function connectToWhatsApp () {
     }
   })
 
-
   sock.ev.on("creds.update", saveCreds);
-
 
   // sock.ev.on("messages.update", (m) => {
   //   console.log( chalk.blue('\n its me\n'),m);
   // })
 
+  console.log('listening')
   sock.ev.on('messages.upsert', async (m) => {
+    let responseData ;
 
-    if(m.messages[0].key.participant){
-      console.log(chalk.yellow('\nfrm group\n') , JSON.stringify(m , undefined , 2 ))
-    }
-    else{
-      console.log(JSON.stringify(m, undefined, 2) , chalk.red('\nBoomBurst\n') );
+    if (m.messages[0].message){
+      console.log((m.messages[0].message.conversation), ' from ', m.messages[0].pushName)
       if (m.messages[0].message.conversation.includes('@gwyBot')){
         let conversation = m.messages[0].message.conversation ;
-        let command = conversation.split(' ')[1].toLowerCase();
+        let cmdStringArray = conversation.split(' ')
+        let command = cmdStringArray[1].toLowerCase();
 
         switch (command){
           case 'weather': 
-          console.log('hi');
-          getWeather()
-          console.log('bye');
-          break 
+            getWeather(cmdStringArray[2] , sock , m.messages[0].key.remoteJid );
+            break;
           default : 
-
         }
       }
+
+      // console.log(chalk.red('\nBoomBurst\n') , 'replying to')
+      // await sock.sendMessage(m.messages[0].key.remoteJid, { text: 'Hello there!' })
     }
+    else{
 
-    // console.log(chalk.red('\nBoomBurst\n') , 'replying to')
-    // await sock.sendMessage(m.messages[0].key.remoteJid, { text: 'Hello there!' })
+      console.log(chalk.red('\nBoomBurst\n') , 'replying to' , JSON.stringify(m , undefined , 2 ))
+      //  let userjid  = m.messages[0].key.remoteJid.includes('@s.whatsapp.net') ? m.messages[0].key.remoteJid : m.messages[0].key.participant ;
+      if(!m.messages[0].key.fromMe){
+      }
+
+    }
   })
-
 }
-
 // run in main file
 connectToWhatsApp()
