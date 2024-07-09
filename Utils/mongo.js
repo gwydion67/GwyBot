@@ -16,7 +16,6 @@ export const connectNotes = async() => {
   },{collection: 'notes'})
 
   let Note = mongoose.model("Note", noteSchema);
-
   return Note;
 }
 

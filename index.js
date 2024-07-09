@@ -10,6 +10,7 @@ import pino from "pino";
 import getWeather from "./API_module/weatherAPI.js";
 import { connectAuth, connectNotes } from "./Utils/mongo.js";
 import useMongoDbAuthState from "./mongoDbAuthState.js";
+import { createNote, getNotes, removeNote } from "./API_module/notesAPI.js";
 
 
 const usePairingCode = process.argv.includes('--use-pairing-code');
@@ -65,15 +66,43 @@ async function connectToWhatsApp () {
     let responseData ;
 
     if (m.messages[0].message){
-      console.log((m.messages[0].message.conversation), ' from ', m.messages[0].pushName)
-      if (m.messages[0].message.conversation.includes('@gwyBot')){
-        let conversation = m.messages[0].message.conversation ;
-        let cmdStringArray = conversation.split(' ')
-        let command = cmdStringArray[1].toLowerCase();
+      // console.log((m.messages[0].message), ' from ', JSON.stringify(m,null,2))
+      let message = m.messages[0]?.message?.conversation || m.messages[0]?.message?.extendedTextMessage?.text;
+      if (message?.toLowerCase()?.trim()?.startsWith('@gwybot')){
+        let cmdStringArray = message?.split(' ')
+        let command = cmdStringArray[1]?.toLowerCase();
+        let res;
+        console.log('note',m.messages[0].pushName)
+        let chatJid = m.messages[0].key.remoteJid;
+        let from = m.messages[0]?.pushName;
 
         switch (command){
           case 'weather': 
             getWeather(cmdStringArray[2] , sock , m.messages[0].key.remoteJid );
+            break;
+          case 'addnote':
+            if(m.messages[0].message.extendedTextMessage){
+              let msg = m.messages[0].message.extendedTextMessage;
+              let note = JSON.stringify(msg?.contextInfo?.quotedMessage.conversation);
+              res = createNote(Note,note,chatJid,from);
+            }else if(cmdStringArray.length > 3 ){
+              let note = cmdStringArray.map((el,index) => {
+                if(index > 1) { return el + " "}else{return ''}
+              }).reduce((str,el) => str + el );
+              res = await createNote(Note,note,chatJid,from);
+            }
+            sock.sendMessage(chatJid, {text: res ? 'note created' : 'note creation failed' })
+            break;
+
+          case 'getnotes':
+            let count = (cmdStringArray.length > 3 && !isNan(cmdStringArray[2]))? parseInt(cmdStringArray[2]) : 0;
+            res = await getNotes(Note,m.messages[0].key.remoteJid,count);
+            sock.sendMessage(chatJid, {text: res? res :  'no notes found'})
+            break;
+          case 'deletenote':
+            let indices = cmdStringArray[2]?.split(',').map((el) => el.trim());
+            res = await removeNote(Note,chatJid,indices);
+            sock.sendMessage(chatJid, {text: res? 'notes deleted' :  'notes deletion failed'})
             break;
           default : 
         }
@@ -84,7 +113,7 @@ async function connectToWhatsApp () {
     }
     else{
 
-      console.log(chalk.red('\nBoomBurst\n') , 'replying to' , JSON.stringify(m , undefined , 2 ))
+      // console.log(chalk.red('\nBoomBurst\n') , 'replying to' , JSON.stringify(m , undefined , 2 ))
       //  let userjid  = m.messages[0].key.remoteJid.includes('@s.whatsapp.net') ? m.messages[0].key.remoteJid : m.messages[0].key.participant ;
       if(!m.messages[0].key.fromMe){
       }
