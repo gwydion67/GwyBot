@@ -2,13 +2,14 @@ import { DisconnectReason, fetchLatestBaileysVersion, useMultiFileAuthState } fr
 import { MongoClient } from "mongodb";
 import 'dotenv/config'
 import * as baileys from '@whiskeysockets/baileys';
-import useMongoDbAuthState from "./mongoDbAuthState.js";
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import chalk from "chalk";
-
 import pino from "pino";
+
 import getWeather from "./API_module/weatherAPI.js";
+import { connectAuth, connectNotes } from "./Utils/mongo.js";
+import useMongoDbAuthState from "./mongoDbAuthState.js";
 
 
 const usePairingCode = process.argv.includes('--use-pairing-code');
@@ -16,13 +17,11 @@ const rl = readline.createInterface({input,output});
 
 async function connectToWhatsApp () {
   
-  const mongoClient = new MongoClient(process.env.MONGO_URI);
-  await mongoClient.connect();
-  const collection = mongoClient.db("whatsapp_api").collection("auth_info_baileys")
-
+  const Note = await connectNotes();
+  const authCollection = await connectAuth();
   const {version, isLatest} = await fetchLatestBaileysVersion();
   console.log(chalk.yellow(`using WA v${version.join('.')}, isLatest: ${isLatest}`))
-  const {state, saveCreds} = await useMongoDbAuthState(collection); 
+  const {state, saveCreds} = await useMongoDbAuthState(authCollection); 
   // const {state, saveCreds} = await useMultiFileAuthState("auth_info_baileys"); 
 
   const sock = baileys.makeWASocket({
@@ -83,10 +82,6 @@ async function connectToWhatsApp () {
           default : 
 
         }
-
-
-
-
       }
     }
 

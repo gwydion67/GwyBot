@@ -20,7 +20,7 @@
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
     "mongodb": "^6.8.0",
-    "mongoose": "^8.4.4",
+    "mongoose": "^8.4.5",
     "pino": "^9.2.0",
     "qrcode-terminal": "^0.12.0"
   },
