@@ -10,7 +10,7 @@ import pino from "pino";
 import getWeather from "./API_module/weatherAPI.js";
 import { connectAuth, connectNotes } from "./Utils/mongo.js";
 import useMongoDbAuthState from "./mongoDbAuthState.js";
-import { createNote, getNotes, removeNote } from "./API_module/notesAPI.js";
+import { handleAddNote, handleDeleteNotes, handleGetNotes } from "./API_module/notesAPI.js";
 
 
 const usePairingCode = process.argv.includes('--use-pairing-code');
@@ -71,38 +71,18 @@ async function connectToWhatsApp () {
       if (message?.toLowerCase()?.trim()?.startsWith('@gwybot')){
         let cmdStringArray = message?.split(' ')
         let command = cmdStringArray[1]?.toLowerCase();
-        let res;
-        console.log('note',m.messages[0].pushName)
-        let chatJid = m.messages[0].key.remoteJid;
-        let from = m.messages[0]?.pushName;
-
         switch (command){
           case 'weather': 
             getWeather(cmdStringArray[2] , sock , m.messages[0].key.remoteJid );
             break;
           case 'addnote':
-            if(m.messages[0].message.extendedTextMessage){
-              let msg = m.messages[0].message.extendedTextMessage;
-              let note = JSON.stringify(msg?.contextInfo?.quotedMessage.conversation);
-              res = createNote(Note,note,chatJid,from);
-            }else if(cmdStringArray.length > 3 ){
-              let note = cmdStringArray.map((el,index) => {
-                if(index > 1) { return el + " "}else{return ''}
-              }).reduce((str,el) => str + el );
-              res = await createNote(Note,note,chatJid,from);
-            }
-            sock.sendMessage(chatJid, {text: res ? 'note created' : 'note creation failed' })
+            handleAddNote(m,Note,sock);
             break;
-
           case 'getnotes':
-            let count = (cmdStringArray.length > 3 && !isNan(cmdStringArray[2]))? parseInt(cmdStringArray[2]) : 0;
-            res = await getNotes(Note,m.messages[0].key.remoteJid,count);
-            sock.sendMessage(chatJid, {text: res? res :  'no notes found'})
+            handleGetNotes(m,Note,sock);
             break;
           case 'deletenote':
-            let indices = cmdStringArray[2]?.split(',').map((el) => el.trim());
-            res = await removeNote(Note,chatJid,indices);
-            sock.sendMessage(chatJid, {text: res? 'notes deleted' :  'notes deletion failed'})
+            handleDeleteNotes(m,Note,sock);
             break;
           default : 
         }

@@ -2,6 +2,7 @@
 export const createNote = async (Note,msg,chatJid,user) => {
  
   let count = 0;
+  let res;
 
   await Note.find().exec().then((data) => {
     console.log(data)
@@ -20,7 +21,6 @@ export const createNote = async (Note,msg,chatJid,user) => {
     index: count
   });
 
-  let res;
   await data.save().then((data) => {
     console.log('Note Created')
     res = true;
@@ -61,6 +61,7 @@ export const removeNote = async (Note,chatJid, index) => {
     await Note.deleteOne({inChat: chatJid,index: parseInt(i)}).then((data) => {
       res =  true;
     }).catch((err) => {
+      console.log('error deleting notes')
       res =  false
     })
 
@@ -71,4 +72,41 @@ export const removeNote = async (Note,chatJid, index) => {
 
 }
 
+export const handleAddNote = async (m,Note,sock) => {
+  let message = m.messages[0]?.message?.conversation || m.messages[0]?.message?.extendedTextMessage?.text;
+  let cmdStringArray = message?.split(' ')
+  let res;
+  let chatJid = m.messages[0].key.remoteJid;
+  let from = m.messages[0]?.pushName;
 
+  if(m.messages[0].message.extendedTextMessage){
+    let msg = m.messages[0].message.extendedTextMessage;
+    let note = JSON.stringify(msg?.contextInfo?.quotedMessage.conversation);
+    res = createNote(Note,note,chatJid,from);
+  }else if(cmdStringArray.length > 3 ){
+    let note = cmdStringArray.map((el,index) => {
+      if(index > 1) { return el + " "}else{return ''}
+    }).reduce((str,el) => str + el );
+    res = await createNote(Note,note,chatJid,from);
+  }
+  sock.sendMessage(chatJid, {text: res ? 'note created' : 'note creation failed' })
+}
+
+export const handleGetNotes = async (m,Note,sock) => {
+  let message = m.messages[0]?.message?.conversation || m.messages[0]?.message?.extendedTextMessage?.text;
+  let cmdStringArray = message?.split(' ')
+  let count = (cmdStringArray.length > 3 && !isNan(cmdStringArray[2]))? parseInt(cmdStringArray[2]) : 0;
+
+  let res = await getNotes(Note,m.messages[0].key.remoteJid,count);
+
+  sock.sendMessage(chatJid, {text: res? res :  'no notes found'})
+}
+
+export const handleDeleteNotes = async(m,Note,sock) => {
+  let message = m.messages[0]?.message?.conversation || m.messages[0]?.message?.extendedTextMessage?.text;
+  let cmdStringArray = message?.split(' ')
+  let indices = cmdStringArray[2]?.split(',').map((el) => el.trim());
+
+  let res = await removeNote(Note,chatJid,indices);
+  sock.sendMessage(chatJid, {text: res? 'notes deleted' :  'notes deletion failed'})
+}
