@@ -71,6 +71,7 @@ async function connectToWhatsApp () {
       if (message?.toLowerCase()?.trim()?.startsWith('@gwybot')){
         let cmdStringArray = message?.split(' ')
         let command = cmdStringArray[1]?.toLowerCase();
+        console.log(command);
         switch (command){
           case 'weather': 
             getWeather(cmdStringArray[2] , sock , m.messages[0].key.remoteJid );
