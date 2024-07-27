@@ -70,22 +70,29 @@ async function connectToWhatsApp () {
       let message = m.messages[0]?.message?.conversation || m.messages[0]?.message?.extendedTextMessage?.text;
       if (message?.toLowerCase()?.trim()?.startsWith('@gwybot')){
         let cmdStringArray = message?.split(' ')
-        let command = cmdStringArray[1]?.toLowerCase();
-        console.log(command);
-        switch (command){
-          case 'weather': 
-            getWeather(cmdStringArray[2] , sock , m.messages[0].key.remoteJid );
-            break;
-          case 'addnote':
-            handleAddNote(m,Note,sock);
-            break;
-          case 'getnotes':
-            handleGetNotes(m,Note,sock);
-            break;
-          case 'deletenote':
-            handleDeleteNotes(m,Note,sock);
-            break;
-          default : 
+        if( cmdStringArray.length > 1 ){
+
+          let command = cmdStringArray[1]?.toLowerCase();
+
+          console.log(command);
+          switch (command){
+            case 'weather': 
+              getWeather(cmdStringArray[2] , sock , m.messages[0].key.remoteJid );
+              break;
+            case 'addnote':
+              handleAddNote(m,Note,sock);
+              break;
+            case 'getnotes':
+              handleGetNotes(m,Note,sock);
+              break;
+            case 'deletenote':
+              handleDeleteNotes(m,Note,sock);
+              break;
+            default : 
+          }
+        }else {
+          let chatJid = m.messages[0].key.remoteJid;
+          sock.sendMessage(chatJid, {text: 'Hello I am GwyBot, Made By Abhishek Kumar and Ranjay Singh'});
         }
       }
 
