@@ -11,6 +11,7 @@ import getWeather from "./API_module/weatherAPI.js";
 import { connectAuth, connectNotes } from "./Utils/mongo.js";
 import useMongoDbAuthState from "./mongoDbAuthState.js";
 import { handleAddNote, handleDeleteNotes, handleGetNotes } from "./API_module/notesAPI.js";
+import { tagAll } from "./API_module/tagall.js";
 
 
 const usePairingCode = process.argv.includes('--use-pairing-code');
@@ -87,6 +88,9 @@ async function connectToWhatsApp () {
               break;
             case 'deletenote':
               handleDeleteNotes(m,Note,sock);
+              break;
+            case 'tagall':
+              tagAll(m,sock);
               break;
             default : 
           }

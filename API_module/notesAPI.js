@@ -112,3 +112,6 @@ export const handleDeleteNotes = async(m,Note,sock) => {
   let res = await removeNote(Note,chatJid,indices);
   sock.sendMessage(chatJid, {text: res? 'notes deleted' :  'notes deletion failed'})
 }
+
+
+
