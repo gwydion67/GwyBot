@@ -70,6 +70,7 @@ async function connectToWhatsApp () {
       // console.log((m.messages[0].message), ' from ', JSON.stringify(m,null,2))
       let message = m.messages[0]?.message?.conversation || m.messages[0]?.message?.extendedTextMessage?.text;
       if (message?.toLowerCase()?.trim()?.startsWith('@gwybot')){
+      let chatJid = m.messages[0].key.remoteJid;
         let cmdStringArray = message?.split(' ')
         if( cmdStringArray.length > 1 ){
 
@@ -93,9 +94,10 @@ async function connectToWhatsApp () {
               tagAll(m,sock);
               break;
             default : 
+              sock.sendMessage(chatJid, {text: 'Hello!,\n Gwybot here, this might not be valid command (till now atleast :) )'});
+              break;
           }
         }else {
-          let chatJid = m.messages[0].key.remoteJid;
           sock.sendMessage(chatJid, {text: 'Hello I am GwyBot, Made By Abhishek Kumar and Ranjay Singh'});
         }
       }
