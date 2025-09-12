@@ -21,12 +21,13 @@ import {
 } from "./API_module/notesAPI.js";
 import { tagAll } from "./API_module/tagall.js";
 import NodeCache from "node-cache";
+import { getMessageBody, setMessage, setSock } from "./Store/messageHandler.js";
 
 const usePairingCode = process.argv.includes("--use-pairing-code");
 const rl = readline.createInterface({ input, output });
 
 async function connectToWhatsApp() {
-  const Note = await connectNotes();
+  const Note = getNotesConnection();
   const authCollection = await connectAuth();
   const { version, isLatest } = await fetchLatestBaileysVersion();
   console.log(
@@ -46,6 +47,8 @@ async function connectToWhatsApp() {
     cachedGroupMetadata: async (jid) => groupCache.get(jid),
   });
 
+  setSock(sock);
+
   if (usePairingCode && !sock.authState.creds.registered) {
     const phoneNumber = await rl.question(
       "Please enter your mobile phoneNumber",
@@ -54,7 +57,7 @@ async function connectToWhatsApp() {
     console.log(`pairing code : ${code}`);
   }
 
-  sock.ev.on("connection.update", (update) => {
+  sock.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect } = update;
 
     if (connection === "close") {
@@ -68,7 +71,7 @@ async function connectToWhatsApp() {
       );
       // reconnect if not logged out
       if (shouldReconnect) {
-        connectToWhatsApp();
+        await connectToWhatsApp();
       }
     } else if (connection === "open") {
       console.log(chalk.greenBright("opened connection"));
@@ -83,13 +86,11 @@ async function connectToWhatsApp() {
 
   console.log("listening");
   sock.ev.on("messages.upsert", async (m) => {
-    let responseData;
+    setMessage(m);
 
     if (m.messages[0].message) {
       // console.log((m.messages[0].message), ' from ', JSON.stringify(m,null,2))
-      let message =
-        m.messages[0]?.message?.conversation ||
-        m.messages[0]?.message?.extendedTextMessage?.text;
+      let message = getMessageBody();
       if (message?.toLowerCase()?.trim()?.startsWith("@gwybot")) {
         let chatJid = m.messages[0].key.remoteJid;
         let cmdStringArray = message?.split(" ");

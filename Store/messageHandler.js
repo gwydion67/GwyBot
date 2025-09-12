@@ -1,4 +1,26 @@
+import { connectNotes } from "../Utils/mongo";
+
 let currentMessage = "";
+let currentSock = null;
+let notesConnection = null;
+
+export const getNotesConnection = async () => {
+  if (!notesConnection) {
+    let Notes = await connectNotes();
+    notesConnection = Notes;
+    return Notes;
+  } else {
+    return notesConnection;
+  }
+};
+
+export const setSock = (sock) => {
+  currentSock = sock;
+};
+
+export const getSock = () => {
+  return currentSock;
+};
 
 export const setMessage = (message) => {
   currentMessage = message;
@@ -13,16 +35,22 @@ export const getCurrentChatJid = () => {
   return chatJid;
 };
 
-export const getCmdArray = () => {
+export const getMessageBody = (m) => {
   if (currentMessage.messages[0].message) {
     // console.log((m.messages[0].message), ' from ', JSON.stringify(m,null,2))
     let message =
       currentMessage.messages[0]?.message?.conversation ||
       currentMessage.messages[0]?.message?.extendedTextMessage?.text;
-    if (message?.toLowerCase()?.trim()?.startsWith("@gwybot")) {
-      let cmdStringArray = message?.split(" ");
-      return cmdStringArray;
-    }
+    return message;
+  }
+  return "";
+};
+
+export const getCmdArray = () => {
+  let message = getMessageBody();
+  if (message?.toLowerCase()?.trim()?.startsWith("@gwybot")) {
+    let cmdStringArray = message?.split(" ");
+    return cmdStringArray;
   }
   return [];
 };
