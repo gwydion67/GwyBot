@@ -1,4 +1,5 @@
-import { connectNotes } from "../Utils/mongo";
+import { TRIGGER } from "../Utils/config.js";
+import { connectNotes } from "../Utils/mongo.js";
 
 let currentMessage = "";
 let currentSock = null;
@@ -48,7 +49,7 @@ export const getMessageBody = (m) => {
 
 export const getCmdArray = () => {
   let message = getMessageBody();
-  if (message?.toLowerCase()?.trim()?.startsWith("@gwybot")) {
+  if (message?.toLowerCase()?.trim()?.startsWith(TRIGGER)) {
     let cmdStringArray = message?.split(" ");
     return cmdStringArray;
   }

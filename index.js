@@ -3,7 +3,6 @@ import {
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
 } from "@whiskeysockets/baileys";
-import { MongoClient } from "mongodb";
 import "dotenv/config";
 import * as baileys from "@whiskeysockets/baileys";
 import * as readline from "node:readline/promises";
@@ -11,17 +10,11 @@ import { stdin as input, stdout as output } from "node:process";
 import chalk from "chalk";
 import pino from "pino";
 
-import getWeather from "./API_module/weatherAPI.js";
-import { connectAuth, connectNotes } from "./Utils/mongo.js";
+import { connectAuth } from "./Utils/mongo.js";
 import useMongoDbAuthState from "./mongoDbAuthState.js";
-import {
-  handleAddNote,
-  handleDeleteNotes,
-  handleGetNotes,
-} from "./API_module/notesAPI.js";
-import { tagAll } from "./API_module/tagall.js";
 import NodeCache from "node-cache";
-import { getMessageBody, setMessage, setSock } from "./Store/messageHandler.js";
+import { getNotesConnection, setSock } from "./Store/stateHandler.js";
+import { responseHandler } from "./Store/responseHandler.js";
 
 const usePairingCode = process.argv.includes("--use-pairing-code");
 const rl = readline.createInterface({ input, output });
@@ -79,63 +72,12 @@ async function connectToWhatsApp() {
   });
 
   sock.ev.on("creds.update", saveCreds);
-
   // sock.ev.on("messages.update", (m) => {
   //   console.log( chalk.blue('\n its me\n'),m);
   // })
 
   console.log("listening");
-  sock.ev.on("messages.upsert", async (m) => {
-    setMessage(m);
-
-    if (m.messages[0].message) {
-      // console.log((m.messages[0].message), ' from ', JSON.stringify(m,null,2))
-      let message = getMessageBody();
-      if (message?.toLowerCase()?.trim()?.startsWith("@gwybot")) {
-        let chatJid = m.messages[0].key.remoteJid;
-        let cmdStringArray = message?.split(" ");
-        if (cmdStringArray.length > 1) {
-          let command = cmdStringArray[1]?.toLowerCase();
-
-          console.log(command);
-          switch (command) {
-            case "weather":
-              getWeather(cmdStringArray[2], sock, m.messages[0].key.remoteJid);
-              break;
-            case "addnote":
-              handleAddNote(m, Note, sock);
-              break;
-            case "getnotes":
-              handleGetNotes(m, Note, sock);
-              break;
-            case "deletenote":
-              handleDeleteNotes(m, Note, sock);
-              break;
-            case "tagall":
-              tagAll(m, sock);
-              break;
-            default:
-              sock.sendMessage(chatJid, {
-                text: "Hello!,\n Gwybot here, this might not be valid command (till now atleast :) )",
-              });
-              break;
-          }
-        } else {
-          sock.sendMessage(chatJid, {
-            text: "Hello I am GwyBot, Made By Abhishek Kumar and Ranjay Singh",
-          });
-        }
-      }
-
-      // console.log(chalk.red('\nBoomBurst\n') , 'replying to')
-      // await sock.sendMessage(m.messages[0].key.remoteJid, { text: 'Hello there!' })
-    } else {
-      // console.log(chalk.red('\nBoomBurst\n') , 'replying to' , JSON.stringify(m , undefined , 2 ))
-      //  let userjid  = m.messages[0].key.remoteJid.includes('@s.whatsapp.net') ? m.messages[0].key.remoteJid : m.messages[0].key.participant ;
-      if (!m.messages[0].key.fromMe) {
-      }
-    }
-  });
+  sock.ev.on("messages.upsert", responseHandler);
 }
 // run in main file
 connectToWhatsApp();
