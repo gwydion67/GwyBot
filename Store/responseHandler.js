@@ -14,6 +14,7 @@ import {
   setMessage,
 } from "./stateHandler.js";
 import { TRIGGER } from "../Utils/config.js";
+import { tagAll } from "../API_module/tagall.js";
 
 export const responseHandler = async (m) => {
   setMessage(m);
@@ -23,6 +24,7 @@ export const responseHandler = async (m) => {
   if (m.messages[0].message) {
     // console.log((m.messages[0].message), ' from ', JSON.stringify(m,null,2))
     let message = getMessageBody();
+    // console.log(message)
     if (message?.toLowerCase()?.trim()?.startsWith(TRIGGER)) {
       let chatJid = getCurrentChatJid();
       let command = getCommand();
@@ -46,15 +48,22 @@ export const responseHandler = async (m) => {
             tagAll(m, sock);
             break;
           default:
-            sock.sendMessage(chatJid, {
+            let res = await sock.sendMessage(chatJid, {
               text: "Hello!,\n Gwybot here, this might not be valid command (till now atleast :) )",
             });
+            console.log(res);
             break;
         }
       } else {
-        sock.sendMessage(chatJid, {
-          text: "Hello I am GwyBot, Made By Abhishek Kumar and Ranjay Singh",
-        });
+        console.log("sending hello");
+        try {
+          let res = await sock.sendMessage(chatJid, {
+            text: "Hello I am GwyBot, Made By Abhishek Kumar and Ranjay Singh",
+          });
+          console.log(res);
+        } catch (e) {
+          console.log(e);
+        }
       }
     }
 

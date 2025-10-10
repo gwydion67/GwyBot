@@ -26,8 +26,8 @@ async function connectToWhatsApp() {
   console.log(
     chalk.yellow(`using WA v${version.join(".")}, isLatest: ${isLatest}`),
   );
-  const { state, saveCreds } = await useMongoDbAuthState(authCollection);
-  // const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
+  // const { state, saveCreds } = await useMongoDbAuthState(authCollection);
+  const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
   const groupCache = new NodeCache({});
 
   const sock = baileys.makeWASocket({
