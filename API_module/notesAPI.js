@@ -1,4 +1,4 @@
-import { getCurrentChatJid, getMessageBody } from "../Store/stateHandler.js";
+import { getCurrentChatJid, getMessageText } from "../Store/stateHandler.ts";
 
 export const createNote = async (Note, msg, chatJid, user) => {
   let count = 0;
@@ -84,7 +84,7 @@ export const removeNote = async (Note, chatJid, index) => {
 };
 
 export const handleAddNote = async (m, Note, sock) => {
-  let message = getMessageBody();
+  let message = getMessageText();
   let cmdStringArray = message?.split(" ");
   let res;
   let chatJid = getCurrentChatJid();
@@ -113,7 +113,7 @@ export const handleAddNote = async (m, Note, sock) => {
 };
 
 export const handleGetNotes = async (m, Note, sock) => {
-  let message = getMessageBody();
+  let message = getMessageText();
   let cmdStringArray = message?.split(" ");
   let count =
     cmdStringArray.length >= 3 && !isNaN(cmdStringArray[2])

@@ -20,7 +20,6 @@ const usePairingCode = process.argv.includes("--use-pairing-code");
 const rl = readline.createInterface({ input, output });
 
 async function connectToWhatsApp() {
-  const Note = getNotesConnection();
   const authCollection = await connectAuth();
   const { version, isLatest } = await fetchLatestBaileysVersion();
   console.log(
